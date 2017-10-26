@@ -17,9 +17,15 @@ export default class OrderConfirmedScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text>
-          Hello!!
+        <Text style={styles.titleText}>
+          Your order is on its way!!
         </Text>
+
+        <FlatList
+        data={[{title: 'Title Text', key: 'item1'}, {title: 'title2', key: 'item2'}]}
+        renderItem={({item}) => <Text key={item.key}> {item.title}</Text>}
+        />
+
         <View style={styles.checkoutWrapper}>
           <Button
             style={styles.checkoutButton}
@@ -54,5 +60,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 15,
+  },
+    baseText: {
+    fontFamily: 'Cochin',
+  },
+  titleText: {
+    fontSize: 20,
+    fontWeight: 'bold',
   }
 });

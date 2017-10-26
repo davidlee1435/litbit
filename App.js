@@ -18,6 +18,7 @@ const AuthNavigator = StackNavigator({
 });
 
 const MainNavigator = StackNavigator({
+
   Home: { screen: HomeScreen },
   Confirm: { screen: ConfirmationScreen },
   Delivery: { screen: DeliveryScreen },

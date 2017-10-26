@@ -38,6 +38,7 @@ export default class ConfirmationScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
+
           <Text style={styles.header}>
             Ready to confirm your order?
           </Text>
@@ -48,6 +49,7 @@ export default class ConfirmationScreen extends React.Component {
             </Text>}
             />
           <Text style={styles.price}>Price: {this.state.price} </Text>
+
 
         <View style={styles.checkoutWrapper}>
           <Button
