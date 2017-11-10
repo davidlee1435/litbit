@@ -23,7 +23,7 @@ const MainNavigator = StackNavigator({
   Confirm: { screen: ConfirmationScreen },
   Delivery: { screen: DeliveryScreen },
   OrderConfirmed: { screen: OrderConfirmedScreen },
-  AcceptOrder: { screen: AcceptOrderScreen }
+  AcceptOrder: { screen: AcceptOrderScreen },
   // Home: { screen: HomeScreen },
 });
 

@@ -65,6 +65,7 @@ export default class HomeScreen extends React.Component {
   }
 
   render() {
+    // const {items} = this.state.items;
     return (
       <View style={styles.container}>
         <Button
