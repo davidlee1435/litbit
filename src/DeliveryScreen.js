@@ -3,6 +3,7 @@ import { Image, TouchableHighlight, Picker, TextInput, Button, StyleSheet, Text,
 import AuthService from './service/AuthService.js';
 import OrderService from './service/OrderService.js';
 import DelivererService from './service/DelivererService.js';
+import {ListView} from 'react-native';
 
 import {StackNavigator, NavigationActions} from 'react-navigation';
 
@@ -89,11 +90,45 @@ export default class DeliveryScreen extends React.Component {
   }
 
   renderConfirmation() {
+  	//console.log(this.state.delivererUid)
+  	var orderArr = this.delivererService.getOrderFromDeliverer(this.state.delivererUid)
+  	//console.log(orderArr)
+  	
+  	var listOfOrders = []
+
+  	_.forEach(orderArr, (x) => {
+  		if (!_.isUndefined(x)) {
+	  		var map = {}
+		  	map["defaultQuantity"] = x["defaultQuantity"]
+		  	map["imageUrl"] = x["imageUrl"]
+		  	map["key"] = x["key"]
+		  	map["pricePerDefaultQuantity"] = x["pricePerDefaultQuantity"]
+		  	map["quantityOrdered"] = x["quantityOrdered"]
+		  	map["title"] = x["title"]
+		  	listOfOrders.push(map)
+  		}
+  	})
+  	console.log(listOfOrders)
+
+
     return (
       <View style={styles.container}>
-          <Text>
-            [orderer name] ordered [order detail] at [order address]
-          </Text>
+      	
+      	
+      	<FlatList
+	            data={listOfOrders}
+	            renderItem={({item}) => 
+	            <Text style={styles.deliverylist}>
+	            Default Quantity: {item.defaultQuantity}
+	            {"\n"}Image URL: {item.imageUrl}
+	            {"\n"}Key: {item.key}
+	            {"\n"}Price/Default Quantity: {item.pricePerDefaultQuantity}
+	            {"\n"}Quantity Ordered: {item.quantityOrdered}
+	            {"\n"}Title: {item.title}
+	            {"\n"}
+	            </Text>}
+        />
+	    
           <Button title="Remove Order" onPress={() => this.delivererService.removeOrderFromDeliverer(this.state.delivererUid)}/>
           <Button
             onPress={() => {this.acceptOrder()}}
@@ -190,6 +225,10 @@ const styles = StyleSheet.create({
   },
   itemListed: {
     fontSize: 40,
+    textAlign: 'left'
+  },
+  deliverylist: {
+    fontSize: 15,
     textAlign: 'left'
   },
   checkoutButton: {
