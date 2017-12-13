@@ -54,13 +54,24 @@ export default class ConfirmationScreen extends React.Component {
     return false
   }
 
+  async mockConfirm() {
+    await sleep(5000);
+    var cart = this.state.cart
+    var ordererUid = this.props.screenProps.user.providerData[0].uid
+    var delivererUid = ordererUid
+    cart.ordererId = ordererUid
+    this.ordererService.addOrderToOrderer(cart, ordererUid, delivererUid)
+    return delivererUid;
+  }
+
 
   async confirmCart() {
     var uid = this.props.screenProps.user.providerData[0].uid
     this.setState(_.merge({}, this.state, {
       loading: true
     }))
-    var delivererUid = await this.queryDeliverer(this.state.availableDeliverers);
+    // var delivererUid = await this.queryDeliverer(this.state.availableDeliverers);
+    var delivererUid = await this.mockConfirm(this.state.availableDeliverers);
     if (delivererUid) {
       this.props.navigation.navigate('OrderConfirmed', {'user': this.props.screenProps.user, 'deliverer': delivererUid, 'cart': this.props.navigation.state.params.cart})
     } else {

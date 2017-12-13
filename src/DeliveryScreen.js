@@ -100,7 +100,7 @@ export default class DeliveryScreen extends React.Component {
             New Order
           </Text>
           <Image
-            style={{width: 100, height: 100}}
+            style={{width: 150, height: 150}}
             source={{uri: this.state.orderer.photoURL}}
           />
           <Text>
@@ -112,7 +112,7 @@ export default class DeliveryScreen extends React.Component {
           <Text>
             Room: {this.state.orderer.dorm.room}
           </Text>
-          <Button title="Remove Order" onPress={() => this.delivererService.removeOrderFromDeliverer(this.state.delivererUid)}/>
+          <Button title="Reject" onPress={() => this.delivererService.removeOrderFromDeliverer(this.state.delivererUid)}/>
           <Button
             onPress={() => {this.acceptOrder()}}
             title="Accept"

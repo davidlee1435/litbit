@@ -155,7 +155,7 @@ export default class HomeScreen extends React.Component {
             {this.state.deliverer.displayName} is coming from {this.state.deliverer.dorm.building}, room {this.state.deliverer.dorm.room}
           </Text>
           {
-            !_.isEmpty(this.state.deliverer.venmoHandle) ? <Text>this.state.deliverer.venmoHandle</Text> : null
+            !_.isEmpty(this.state.deliverer.venmoHandle) ? <Text>Venmo Handle: {this.state.deliverer.venmoHandle}</Text> : null
           }
           <Button
             style={styles.checkoutButton}
@@ -174,21 +174,22 @@ export default class HomeScreen extends React.Component {
     cart.ordererId = ordererUid
 
     for(i=0; i<delivererUids.length; i++) {
+      console.log(uid)
       var uid = delivererUids[i];
       var order = this.delivererService.getOrderFromDeliverer(uid)
       if (!order) {
         this.delivererService.addOrderToDeliverer(cart, uid)
-        await sleep(10000);
-        var order = this.delivererService.getOrderFromDelivererPromise(uid).then((order) => {
-          if (!_.isNull(order) && !_.isUndefined(order.delivererId)) {
-            console.log("Accepted!")
-            this.ordererService.addOrderToOrderer(cart, ordererUid, uid)
-            return;
-          } else {
-            console.log("Not accepted!")
-            this.delivererService.removeOrderFromDeliverer(uid)
-          }
-        })
+        await sleep(8000);
+        var order = this.delivererService.getOrderFromDeliverer(uid)
+        await sleep(2000);
+        if (!_.isNull(order) && !_.isUndefined(order.delivererId)) {
+          console.log("Accepted!")
+          this.ordererService.addOrderToOrderer(cart, ordererUid)
+          break;
+        } else {
+          console.log("Not accepted!")
+          this.delivererService.removeOrderFromDeliverer(uid)
+        }
       }
     }
   }
