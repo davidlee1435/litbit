@@ -9,10 +9,19 @@ import OrdererService from './service/OrdererService.js';
 import DelivererService from './service/DelivererService.js';
 const _ = require('lodash');
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 const resetAction = NavigationActions.reset({
   index: 0,
   actions: [
     NavigationActions.navigate({ routeName: 'Delivery'})
+  ]
+})
+
+const settingsAction = NavigationActions.reset({
+  index: 0,
+  actions: [
+    NavigationActions.navigate({ routeName: 'Settings'})
   ]
 })
 
@@ -35,8 +44,6 @@ const defaultCart = {
   },
 }
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 class LogoutButton extends React.Component {
   constructor() {
     super();
@@ -56,7 +63,7 @@ class LogoutButton extends React.Component {
 export default class HomeScreen extends React.Component {
   static navigationOptions = ({ navigation, screenProps }) => ({
     title: "Home",
-    headerLeft: <LogoutButton/>,
+    headerLeft: <Button title='Settings' onPress={() => navigation.dispatch(settingsAction)}/>,
     headerRight: <Button title='Delivery Mode' onPress={() => navigation.dispatch(resetAction)} />
   });
 
@@ -69,6 +76,7 @@ export default class HomeScreen extends React.Component {
     this.state = {
       cart: defaultCart,
       isOrderInProgress: false,
+      deliverer: null,
     }
   }
 
@@ -81,14 +89,19 @@ export default class HomeScreen extends React.Component {
     }
     this.ordererService.ref.child(uid + '/order').on('value', (data) => {
       if (!_.isNull(data.val())) {
-        this.setState(_.merge({}, this.state, {
-          cart: data.cart,
-          isOrderInProgress: true,
-        }))
+        var currentDeliverer;
+        this.authService.getUser(data.val().delivererUid).then((currentDeliverer) => {
+          this.setState(_.merge({}, this.state, {
+            cart: data.cart,
+            isOrderInProgress: true,
+            deliverer: currentDeliverer.val(),
+          }))
+        })
       } else {
         this.setState(_.merge({}, this.state, {
           cart: defaultCart,
           isOrderInProgress: false,
+          deliverer: null,
         }))
       }
     })
@@ -132,8 +145,18 @@ export default class HomeScreen extends React.Component {
   renderInProgress() {
     return (
       <View style={styles.container}>
-        <View style={styles.itemButtonContainer}>
+        <View style={styles.inProgressContainer}>
           <Text>Order is in progress</Text>
+          <Image
+            style={{width: 100, height: 100}}
+            source={{uri: this.state.deliverer.photoURL}}
+          />
+          <Text>
+            {this.state.deliverer.displayName} is coming from {this.state.deliverer.dorm.building}, room {this.state.deliverer.dorm.room}
+          </Text>
+          {
+            !_.isEmpty(this.state.deliverer.venmoHandle) ? <Text>Venmo Handle: {this.state.deliverer.venmoHandle}</Text> : null
+          }
           <Button
             style={styles.checkoutButton}
             onPress={() => {this.ordererService.removeOrderFromOrderer(this.props.screenProps.user.providerData[0].uid)}}
@@ -144,7 +167,6 @@ export default class HomeScreen extends React.Component {
       </View>
     )
   }
-
 
   async queryDeliverer(delivererUids) {
     var cart = this.state.cart
@@ -157,8 +179,9 @@ export default class HomeScreen extends React.Component {
       var order = this.delivererService.getOrderFromDeliverer(uid)
       if (!order) {
         this.delivererService.addOrderToDeliverer(cart, uid)
-        await sleep(10000);
+        await sleep(8000);
         var order = this.delivererService.getOrderFromDeliverer(uid)
+        await sleep(2000);
         if (!_.isNull(order) && !_.isUndefined(order.delivererId)) {
           console.log("Accepted!")
           this.ordererService.addOrderToOrderer(cart, ordererUid)
@@ -176,12 +199,13 @@ export default class HomeScreen extends React.Component {
       <View style={styles.container}>
         <Button
           style={styles.checkoutButton}
-          onPress={() => {this.queryDeliverer([
+          onPress={() => this.queryDeliverer([
             "10210669950444906",
             "10213386516072823",
-          ])}}
-          title="Query Deliverers"
+          ])}
+          title="Query"
           color="#841584"
+          accessibilityLabel="Clear Cart"
         />
         <FlatList
           contentContainerStyle={styles.feed}
@@ -245,7 +269,10 @@ const styles = StyleSheet.create({
   itemButtonContainer: {
     alignItems: 'center',
     backgroundColor: '#66b4f3',
-
+  },
+  inProgressContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   itemButton: {
     height: 200,

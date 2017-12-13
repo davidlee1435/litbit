@@ -10,7 +10,8 @@ export default class OrdererService extends BaseDatabaseService {
     return this.ref.child(uid).set({order: newOrder})
   }
 
-  addOrderToOrderer(newOrder, uid) {
+  addOrderToOrderer(newOrder, uid, duid) {
+    newOrder.delivererUid = duid;
     this.ref.child(uid).set({order: newOrder})
   }
 

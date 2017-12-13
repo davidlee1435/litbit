@@ -8,6 +8,8 @@ import OrdererService from './service/OrdererService.js';
 
 const _ = require('lodash');
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 export default class ConfirmationScreen extends React.Component {
   static navigationOptions = {
     title: "Confirm Order",
@@ -22,6 +24,7 @@ export default class ConfirmationScreen extends React.Component {
       cart: {},
       price: 0,
       availableDeliverers: [],
+      loading: false,
     }
   }
 
@@ -32,7 +35,6 @@ export default class ConfirmationScreen extends React.Component {
     cart.ordererId = ordererUid
 
     for(i=0; i<delivererUids.length; i++) {
-      console.log(uid)
       var uid = delivererUids[i];
       var order = this.delivererService.getOrderFromDeliverer(uid)
       if (!order) {
@@ -41,8 +43,8 @@ export default class ConfirmationScreen extends React.Component {
         var order = this.delivererService.getOrderFromDeliverer(uid)
         if (!_.isNull(order) && !_.isUndefined(order.delivererId)) {
           console.log("Accepted!")
-          this.ordererService.addOrderToOrderer(cart, ordererUid)
-          return true;
+          this.ordererService.addOrderToOrderer(cart, ordererUid, uid)
+          return uid;
         } else {
           console.log("Not accepted!")
           this.delivererService.removeOrderFromDeliverer(uid)
@@ -52,14 +54,31 @@ export default class ConfirmationScreen extends React.Component {
     return false
   }
 
+  async mockConfirm() {
+    await sleep(5000);
+    var cart = this.state.cart
+    var ordererUid = this.props.screenProps.user.providerData[0].uid
+    var delivererUid = ordererUid
+    cart.ordererId = ordererUid
+    this.ordererService.addOrderToOrderer(cart, ordererUid, delivererUid)
+    return delivererUid;
+  }
 
-  confirmCart() {
+
+  async confirmCart() {
     var uid = this.props.screenProps.user.providerData[0].uid
-    var success = this.queryDeliverer();
-    if (success) {
-      this.props.navigation.navigate('OrderConfirmed', {'user': this.props.screenProps.user, 'cart': this.props.navigation.state.params.cart})
+    this.setState(_.merge({}, this.state, {
+      loading: true
+    }))
+    // var delivererUid = await this.queryDeliverer(this.state.availableDeliverers);
+    var delivererUid = await this.mockConfirm(this.state.availableDeliverers);
+    if (delivererUid) {
+      this.props.navigation.navigate('OrderConfirmed', {'user': this.props.screenProps.user, 'deliverer': delivererUid, 'cart': this.props.navigation.state.params.cart})
     } else {
       console.log("Unsuccessful- try again")
+      this.setState(_.merge({}, this.state, {
+        loading: false
+      }))
     }
   }
 
@@ -84,7 +103,15 @@ export default class ConfirmationScreen extends React.Component {
     }))
   }
 
-  render() {
+  renderLoading() {
+    return (
+      <View style={styles.container}>
+          <Text>Finding a deliverer...</Text>
+      </View>
+    )
+  }
+
+  renderDefault() {
     return (
       <View style={styles.container}>
           <Text style={styles.header}>
@@ -110,6 +137,10 @@ export default class ConfirmationScreen extends React.Component {
         </View>
       </View>
 	  )
+  }
+
+  render() {
+    return this.state.loading ? this.renderLoading() : this.renderDefault();
   }
 }
 const styles = StyleSheet.create({
