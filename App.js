@@ -9,6 +9,7 @@ import ConfirmationScreen from './src/ConfirmationScreen.js';
 import OrderConfirmedScreen from './src/OrderConfirmedScreen.js';
 import DeliveryScreen from './src/DeliveryScreen.js';
 import AcceptOrderScreen from './src/AcceptOrderScreen.js';
+import SettingsScreen from './src/SettingsScreen.js';
 
 import secrets from './config/secrets.js';
 
@@ -24,6 +25,7 @@ const MainNavigator = StackNavigator({
   Delivery: { screen: DeliveryScreen },
   OrderConfirmed: { screen: OrderConfirmedScreen },
   AcceptOrder: { screen: AcceptOrderScreen },
+  Settings: { screen: SettingsScreen },
 });
 
 export default class App extends React.Component {

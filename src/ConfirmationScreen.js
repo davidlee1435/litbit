@@ -43,7 +43,7 @@ export default class ConfirmationScreen extends React.Component {
         var order = this.delivererService.getOrderFromDeliverer(uid)
         if (!_.isNull(order) && !_.isUndefined(order.delivererId)) {
           console.log("Accepted!")
-          this.ordererService.addOrderToOrderer(cart, ordererUid)
+          this.ordererService.addOrderToOrderer(cart, ordererUid, uid)
           return uid;
         } else {
           console.log("Not accepted!")

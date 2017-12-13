@@ -22,9 +22,10 @@ class AvailabilityButton extends React.Component {
   }
 
   render() {
+    console.log(this.props.uid)
     return (
       <Button
-        title="I'm Available"
+        title="Toggle Availability"
         onPress={() => this.delivererService.toggleAvailableDeliverer(this.props.uid)}
       />
     )
@@ -48,6 +49,8 @@ export default class DeliveryScreen extends React.Component {
     this.state = {
       pendingDelivery: null,
       delivererUid: null,
+      orderer: null,
+      isAvailable: false,
     }
   }
 
@@ -62,11 +65,52 @@ export default class DeliveryScreen extends React.Component {
     });
   }
 
+  triggerOrder() {
+    var order = {
+      cart: {
+        1: {
+          defaultQuantity: 10,
+          imageUrl: 1,
+          key: 1,
+          pricePerDefaultQuantity: 2.99,
+          quantityOrdered: 5,
+          title: "Cups",
+        },
+        2: {
+          defaultQuantity: 2,
+          imageUrl: 2,
+          key: 2,
+          pricePerDefaultQuantity: 2.99,
+          quantityOrdered: 4,
+          title: "Balls",
+        },
+      },
+      delivererId: null,
+      ordererId: "10210669950444906",
+    }
+
+    this.delivererService.addOrderToDeliverer(order, this.state.delivererUid);
+  }
+
+
   renderConfirmation() {
     return (
       <View style={styles.container}>
           <Text>
-            [orderer name] ordered [order detail] at [order address]
+            New Order
+          </Text>
+          <Image
+            style={{width: 100, height: 100}}
+            source={{uri: this.state.orderer.photoURL}}
+          />
+          <Text>
+            Name: {this.state.orderer.displayName}
+          </Text>
+          <Text>
+            Dorm Building: {this.state.orderer.dorm.building}
+          </Text>
+          <Text>
+            Room: {this.state.orderer.dorm.room}
           </Text>
           <Button title="Remove Order" onPress={() => this.delivererService.removeOrderFromDeliverer(this.state.delivererUid)}/>
           <Button
@@ -82,14 +126,20 @@ export default class DeliveryScreen extends React.Component {
   renderDefault() {
     return (
       <View style={styles.container}>
-        {
-          /*
           <Button title="Trigger Order" onPress={() => this.triggerOrder()}/>
           <Button title="Remove Order" onPress={() => this.delivererService.removeOrderFromDeliverer(this.state.delivererUid)}/>
-          */
-        }
         <Text>
           No orders yet!
+        </Text>
+      </View>
+    )
+  }
+
+  renderUnavailable() {
+    return (
+      <View style={styles.container}>
+        <Text>
+          Press Toggle Availability to start accepting orders
         </Text>
       </View>
     )
@@ -98,10 +148,23 @@ export default class DeliveryScreen extends React.Component {
   renderDelivery() {
     return (
       <View style={styles.container}>
-        <Button title="Finish Order" onPress={() => this.orderService.finishOrder(this.state.delivererUid)}/>
         <Text>
           Delivery in progress
         </Text>
+        <Image
+          style={{width: 100, height: 100}}
+          source={{uri: this.state.orderer.photoURL}}
+        />
+        <Text>
+          Name: {this.state.orderer.displayName}
+        </Text>
+        <Text>
+          Dorm Building: {this.state.orderer.dorm.building}
+        </Text>
+        <Text>
+          Room: {this.state.orderer.dorm.room}
+        </Text>
+        <Button title="Finish Order" onPress={() => this.orderService.finishOrder(this.state.delivererUid)}/>
       </View>
     )
   }
@@ -113,12 +176,42 @@ export default class DeliveryScreen extends React.Component {
         delivererUid: uid
       }))
     }
-    var currentDeliveryRef = this.delivererService.ref.child('available/' + uid + '/order');
 
-    currentDeliveryRef.on('value', (data) => {
-      this.setState(() => {
-        return { pendingDelivery: data.val() }
-      });
+    var currentDeliveryRef = this.delivererService.ref.child('available/' + uid);
+
+    currentDeliveryRef.on('value', (snapshot) => {
+      if (!snapshot.exists()) {
+        console.log("deliverer not available")
+        this.setState(() => {
+          return {
+            isAvailable: false
+          }
+        })
+      } else {
+        order = snapshot.child('order/').val()
+        if (order) {
+          var currentOrderer;
+          this.authService.getUser(order.ordererId).then((currentOrderer) => {
+            this.setState(() => {
+              return {
+                isAvailable: true,
+                pendingDelivery: order,
+                orderer: currentOrderer.val(),
+              }
+            });
+          })
+        }
+        else {
+          this.setState(() => {
+            return {
+              isAvailable: true,
+              pendingDelivery: null,
+              orderer: null,
+            }
+          })
+        }
+      }
+
     });
   }
 
@@ -128,6 +221,9 @@ export default class DeliveryScreen extends React.Component {
   }
 
   render() {
+    if (!this.state.isAvailable) {
+      return this.renderUnavailable();
+    }
     var hasDelivery = Boolean(this.state.pendingDelivery);
     var hasAccepted = Boolean(this.state.pendingDelivery && this.state.pendingDelivery.delivererId)
     if (hasDelivery) {

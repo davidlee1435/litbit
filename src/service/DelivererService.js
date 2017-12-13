@@ -27,14 +27,12 @@ export default class DelivererService extends BaseDatabaseService {
   }
 
   addAvailableDeliverer(uid) {
-    this.ref.child('available/' + uid).set({order: ''});
+    this.ref.child('available/' + uid).set({order: false});
   }
 
   removeAvailableDeliverer(uid) {
-    this.ref.child('available/').orderByChild('uid').equalTo(uid).once('value', (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-        childSnapshot.ref.remove();
-      })
+    this.ref.child('available/' + uid).once('value', (snapshot) => {
+      snapshot.ref.set(null);
     })
   }
 
@@ -80,6 +78,16 @@ export default class DelivererService extends BaseDatabaseService {
       }
     })
     return order;
+  }
+
+  getOrderFromDelivererPromise(uid) {
+    return this.ref.child('available/' + uid + '/order').once('value', (snapshot) => {
+      if (snapshot.exists()) {
+        return snapshot.val();
+      } else {
+        return null;
+      }
+    })
   }
 
   acceptOrder(uid) {
